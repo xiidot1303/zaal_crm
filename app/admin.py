@@ -13,6 +13,7 @@ from app.services.transfer_service import (
     apply_transfer_balances,
     update_transfer_balances,
 )
+from unfold.contrib.filters.admin import RangeDateFilter, RangeDateTimeFilter
 
 
 admin.site.unregister(User)
@@ -58,13 +59,15 @@ class RoomAdmin(ModelAdmin):
 class AccommodationAdmin(ModelAdmin):
     list_display = ("room", "days", "check_in", "check_out", "price")
     search_fields = ("room__number",)
-    list_filter = ("check_in", "check_out")
+    list_filter_submit = True
+    list_filter = (("check_in", RangeDateFilter), ("check_out", RangeDateFilter))
 
 
 @admin.register(Income)
 class IncomeAdmin(ModelAdmin):
     list_display = ("account", "type", "amount", "accommondation", "date")
-    list_filter = ("type", "date")
+    list_filter_submit = True
+    list_filter = ("type", ("date", RangeDateFilter))
     search_fields = ("account__title", "description", "accommondation__room_number")
     list_select_related = ("account", "accommondation")
     readonly_fields = ("date",)
@@ -74,7 +77,8 @@ class IncomeAdmin(ModelAdmin):
 class ExpenseAdmin(ModelAdmin):
     list_display = ("title", "account", "amount", "date")
     search_fields = ("title", "description", "account__title")
-    list_filter = ("date",)
+    list_filter_submit = True
+    list_filter = (("date", RangeDateFilter), "account")
     list_select_related = ("account",)
     readonly_fields = ("date",)
 
@@ -89,7 +93,8 @@ class TransferAdmin(ModelAdmin):
         "to_account__title",
         "description",
     )
-    list_filter = ("date",)
+    list_filter_submit = True
+    list_filter = (("date", RangeDateFilter), "from_account", "to_account")
     list_select_related = ("from_account", "to_account")
     readonly_fields = ("date",)
 
@@ -113,3 +118,13 @@ class TransferAdmin(ModelAdmin):
             setattr(transfer_obj, '_skip_transfer_signal', True)
             super().save_model(request, transfer_obj, form, change)
             update_transfer_balances(old_transfer, transfer_obj)
+
+
+@admin.register(Salary)
+class SalaryAdmin(ModelAdmin):
+    list_display = ("staff", "account", "amount", "date")
+    search_fields = ("staff__name", "account__title", "description")
+    list_filter_submit = True
+    list_filter = (("date", RangeDateFilter), "account")
+    list_select_related = ("staff", "account")
+    readonly_fields = ("date",)

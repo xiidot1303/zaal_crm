@@ -10,7 +10,7 @@ from app.utils import generate_random_string
 from app.services.bot_service import get_bot_username
 from asgiref.sync import async_to_sync
 
-from .models import Account, Accommodation, Expense, Income, Staff, Transfer
+from .models import Account, Accommodation, Expense, Income, Staff, Transfer, Salary
 
 logger = logging.getLogger(__name__)
 
@@ -285,3 +285,48 @@ def transfer_deleted(sender, instance, **kwargs):
     )
 
     reverse_transfer_balances(instance)
+
+
+@receiver(post_save, sender=Salary)
+def salary_created(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    if not instance.account_id:
+        logger.warning(
+            "Salary %s has no account_id, skipping balance update.",
+            instance.pk,
+        )
+        return
+
+    logger.info(
+        "Updating balance for account %s after salary %s created.",
+        instance.account_id,
+        instance.pk,
+    )
+
+    Account.objects.filter(pk=instance.account_id).update(
+        balance=F('balance') - instance.amount
+    )
+
+
+@receiver(post_delete, sender=Salary)
+def salary_deleted(sender, instance, **kwargs):
+    """Add salary amount back to account balance when salary is deleted"""
+    if not instance.account_id:
+        logger.warning(
+            "Salary %s has no account_id, skipping balance reversal on delete.",
+            instance.pk,
+        )
+        return
+
+    logger.info(
+        "Reversing salary %s: adding %s back to account %s balance.",
+        instance.pk,
+        instance.amount,
+        instance.account_id,
+    )
+
+    Account.objects.filter(pk=instance.account_id).update(
+        balance=F('balance') + instance.amount
+    )

@@ -132,3 +132,27 @@ class Transfer(models.Model):
     class Meta:
         verbose_name = "Перевод"
         verbose_name_plural = "Переводы"
+
+
+class Salary(models.Model):
+    staff = models.ForeignKey(Staff, verbose_name="Сотрудник", on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
+    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
+    description = models.TextField("Описание", blank=True, null=True)
+    date = models.DateTimeField("Дата", auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.staff.name} - {self.amount} so'm."
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        account = Account.objects.get(pk=self.account_id)
+        if account.balance < self.amount:
+            raise ValidationError(
+                f"Недостаточно средств на счёте {account.title}. "
+                f"Требуется {self.amount}, доступно {account.balance}."
+            )
+
+    class Meta:
+        verbose_name = "Зарплата"
+        verbose_name_plural = "Зарплаты"
