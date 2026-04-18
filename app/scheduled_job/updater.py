@@ -2,6 +2,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from django_apscheduler.jobstores import register_events, DjangoJobStore
 from app.scheduled_job import *
+from app.scheduled_job.room_job import check_room_availability
 from bot.scheduled_job import mailing
 from bot.services.redis_service import save_langs_to_redis
 from asgiref.sync import async_to_sync
@@ -27,3 +28,4 @@ class jobs:
         async_to_sync(mailing.send_message), 
         'interval', minutes=5)
     scheduler.add_job(save_langs_to_redis, 'interval', minutes=20)
+    scheduler.add_job(check_room_availability, 'interval', minutes=5)
