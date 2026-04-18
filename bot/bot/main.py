@@ -153,6 +153,21 @@ async def web_app_data_handler(update: Update, context: CustomContext):
                 text = payload.get('message', context.words.income_created_default)
         else:
             text = payload.get('message', context.words.income_created_default)
+
+    # Handle room status update
+    elif payload.get('action') == 'room_status_updated':
+        room_id = payload.get('room_id')
+        is_free = payload.get('is_free')
+        if room_id is not None:
+            try:
+                from app.models import Room
+                room = await Room.objects.aget(pk=room_id)
+                status_text = context.words.room_free if is_free else context.words.room_occupied
+                text = f"{context.words.room_status_updated}\n{context.words.room_number}: {room.number}\n{context.words.room_status}: {status_text}"
+            except Room.DoesNotExist:
+                text = payload.get('message', 'Room status updated')
+        else:
+            text = payload.get('message', 'Room status updated')
     else:
         return
 

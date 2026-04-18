@@ -9,7 +9,8 @@ from django.contrib.auth.views import (
 from app.views import (
     main,
     expense,
-    income
+    income,
+    room
 )
 
 
@@ -32,4 +33,8 @@ urlpatterns = [
     # income
     path('income/create/', income.IncomeCreateView.as_view(), name='income_create'),
     path('api/rooms/', income.get_rooms, name='get_rooms'),
+
+    # room management
+    path('room/management/', room.RoomManagementView.as_view(), name='room_management'),
+    path('api/room/toggle-status/', room.RoomToggleStatusView.as_view(), name='room_toggle_status'),
 ]

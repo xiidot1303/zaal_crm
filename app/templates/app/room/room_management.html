@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление комнатами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-color: var(--tg-theme-hint-color, #dee2e6);
+            transition: all 0.3s ease;
+        }
+        .card-title {
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .status-indicator {
+            border: 2px solid transparent;
+            user-select: none;
+        }
+        .status-free {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .status-free:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: scale(1.05);
+        }
+        .status-busy {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        .status-busy:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            transform: scale(1.05);
+        }
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">Управление комнатами 🏨</h2>
+                <div id="roomsContainer" class="row">
+                    {% for room in rooms %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h4 class="card-title mb-3">{{ room.number }}</h4>
+                                <div class="status-indicator {% if room.is_free %}status-free{% else %}status-busy{% endif %} p-3 rounded" 
+                                     onclick="toggleRoomStatus({{ room.id }})" 
+                                     style="cursor: pointer; transition: all 0.3s ease;">
+                                    <h5 class="mb-0">
+                                        {% if room.is_free %}
+                                            СВОБОДНА
+                                        {% else %}
+                                            ЗАНЯТА
+                                        {% endif %}
+                                    </h5>
+                                    <small>Нажмите чтобы изменить</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Telegram Web App
+        Telegram.WebApp.expand();
+        Telegram.WebApp.setHeaderColor('bg_color');
+
+        // Apply Telegram theme
+        const themeParams = Telegram.WebApp.themeParams;
+        if (themeParams) {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color || '#000000');
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color || '#f8f9fa');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color || '#dee2e6');
+        }
+
+        // Toggle room status
+        async function toggleRoomStatus(roomId) {
+            try {
+                const formData = new FormData();
+                formData.append('room_id', roomId);
+
+                const response = await fetch('/api/room/toggle-status/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Update the room card in the DOM
+                    updateRoomCard(roomId, data.is_free);
+
+                    // Show success message
+                    showMessage('Статус успешно изменен!', 'success');
+                } else {
+                    showMessage('Ошибка при изменении статуса: ' + (data.error || 'Неизвестная ошибка'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error toggling room status:', error);
+                showMessage('Ошибка при изменении статуса', 'danger');
+            }
+        }
+
+        // Update room card in DOM
+        function updateRoomCard(roomId, isFree) {
+            const statusIndicator = document.querySelector(`[onclick="toggleRoomStatus(${roomId})"]`);
+            const statusText = statusIndicator.querySelector('h5');
+
+            if (isFree) {
+                statusIndicator.className = 'status-indicator status-free p-3 rounded';
+                statusText.textContent = 'СВОБОДНА';
+            } else {
+                statusIndicator.className = 'status-indicator status-busy p-3 rounded';
+                statusText.textContent = 'ЗАНЯТА';
+            }
+        }
+
+        // Show message to user
+        function showMessage(message, type) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.alert');
+            existingMessages.forEach(msg => msg.remove());
+
+            // Create new message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(alertDiv);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // Get CSRF token
+        function getCsrfToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfToken ? csrfToken.value : '';
+        }
+    </script>
+</body>
+</html>
