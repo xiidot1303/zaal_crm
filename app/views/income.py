@@ -4,8 +4,18 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from asgiref.sync import sync_to_async
-from app.models import Income, Accommodation, Room
+from app.models import Income, Accommodation, Room, Staff
 from app.forms import IncomeForm
+
+
+def get_staff_from_request(request):
+    staff_id = request.GET.get('staff_id') or request.POST.get('staff_id')
+    if not staff_id:
+        return None
+    try:
+        return Staff.objects.get(pk=int(staff_id))
+    except (Staff.DoesNotExist, ValueError, TypeError):
+        return None
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -16,6 +26,10 @@ class IncomeCreateView(CreateView):
     success_url = reverse_lazy('admin:index')
 
     def form_valid(self, form):
+        staff = get_staff_from_request(self.request)
+        if staff:
+            form.instance.staff = staff
+
         cleaned_data = form.cleaned_data
         income_type = cleaned_data.get('type')
         

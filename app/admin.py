@@ -66,7 +66,7 @@ class AccommodationAdmin(ModelAdmin):
 
 @admin.register(Income)
 class IncomeAdmin(ModelAdmin):
-    list_display = ("account", "type", "amount", "accommondation", "date")
+    list_display = ("account", "staff", "type", "amount", "accommondation", "date")
     list_filter_submit = True
     list_filter = ("type", ("date", RangeDateFilter))
     search_fields = ("account__title", "description", "accommondation__room_number")
@@ -76,7 +76,7 @@ class IncomeAdmin(ModelAdmin):
 
 @admin.register(Expense)
 class ExpenseAdmin(ModelAdmin):
-    list_display = ("title", "account", "amount", "date")
+    list_display = ("title", "account", "staff", "amount", "date")
     search_fields = ("title", "description", "account__title")
     list_filter_submit = True
     list_filter = (("date", RangeDateFilter), "account")

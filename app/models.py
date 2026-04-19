@@ -67,6 +67,7 @@ class Accommodation(models.Model):
 
 class Income(models.Model):
     account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staff, verbose_name="Сотрудник", null=True, blank=True, on_delete=models.PROTECT)
     amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
     TYPE_CHOICES = [
         ('sale', 'Продажа'),
@@ -92,6 +93,7 @@ class Income(models.Model):
 
 class Expense(models.Model):
     title = models.CharField("Название", max_length=100)
+    staff = models.ForeignKey(Staff, verbose_name="Сотрудник", null=True, blank=True, on_delete=models.PROTECT)
     account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
     amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
     description = models.TextField("Описание", blank=True, null=True)

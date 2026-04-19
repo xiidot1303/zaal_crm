@@ -12,6 +12,7 @@ from app.resources.classes import *
 from bot.services.string_service import *
 from config import WEBAPP_URL
 from telegram import KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
+from app.models import Staff
 
 
 async def is_message_back(update: Update):
@@ -23,12 +24,15 @@ async def is_message_back(update: Update):
 
 async def main_menu(update: Update, context: CustomContext):
     bot = context.bot
-    expense_url = f"{WEBAPP_URL.rstrip('/')}/expense/create" if WEBAPP_URL else None
-    income_url = f"{WEBAPP_URL.rstrip('/')}/income/create" if WEBAPP_URL else None
+    # get staff
+    staff: Staff | None = await Staff.objects.filter(bot_user__user_id=update.effective_chat.id).afirst()
+    if staff:
+        staff_id = staff.pk
+    else:
+        staff_id = None
+    expense_url = f"{WEBAPP_URL.rstrip('/')}/expense/create?staff_id={staff_id}" if WEBAPP_URL else None
+    income_url = f"{WEBAPP_URL.rstrip('/')}/income/create?staff_id={staff_id}" if WEBAPP_URL else None
     room_management_url = f"{WEBAPP_URL.rstrip('/')}/room/management" if WEBAPP_URL else None
-    print(  f"Expense URL: {expense_url}")  # Debug print to check the URL
-    print(  f"Income URL: {income_url}")  # Debug print to check the URL
-    print(  f"Room Management URL: {room_management_url}")  # Debug print to check the URL
     buttons = [[context.words.create_expense], [context.words.create_income], [context.words.room_management]]
 
     if expense_url and income_url and room_management_url:
