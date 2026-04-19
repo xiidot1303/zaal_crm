@@ -35,10 +35,11 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(ModelAdmin):
-    list_display = ("name", "bot_user", "invite_link")
+    list_display = ("name", "bot_user", "invite_link", "is_active")
     search_fields = ("name", "bot_user__tg_id")
     list_select_related = ("bot_user",)
     readonly_fields = ("invite_link", "bot_user")
+    list_filter = ("is_active",)
 
 
 @admin.register(Account)

@@ -1,16 +1,16 @@
 import logging
 
 from django.db.models import F
-from django.db.models.signals import post_delete, post_save, pre_delete
+from django.db.models.signals import post_delete, post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 
 from app.services.transfer_service import reverse_transfer_balances
 from app.utils import generate_random_string
-from app.services.bot_service import get_bot_username
+from app.services.bot_service import get_bot_username, send_newsletter_api
 from asgiref.sync import async_to_sync
 
-from .models import Account, Accommodation, Expense, Income, Staff, Transfer, Salary
+from app.models import *
 
 logger = logging.getLogger(__name__)
 
@@ -24,23 +24,60 @@ def build_staff_invite_link(token_length=6):
     return f"https://t.me/{BOT_USERNAME}?start={random_string}"
 
 
+@receiver(pre_save, sender=Staff)
+def staff_pre_save(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+
+    try:
+        existing = Staff.objects.get(pk=instance.pk)
+    except Staff.DoesNotExist:
+        return
+
+    instance._previous_is_active = existing.is_active
+
+
 @receiver(post_save, sender=Staff)
 def staff_saved(sender, instance, created, **kwargs):
-    if not created:
-        logger.info(f"Staff updated: {instance}")
+    if created:
+        logger.info(f"Staff created: {instance}")
+
+        invite_link = build_staff_invite_link()
+        if not invite_link:
+            logger.warning(
+                "Skipping invite link generation for staff %s because BOT_USERNAME is not configured.",
+                instance.pk,
+            )
+            return
+
+        Staff.objects.filter(pk=instance.pk).update(invite_link=invite_link)
         return
 
-    logger.info(f"Staff created: {instance}")
+    logger.info(f"Staff updated: {instance}")
 
-    invite_link = build_staff_invite_link()
-    if not invite_link:
-        logger.warning(
-            "Skipping invite link generation for staff %s because BOT_USERNAME is not configured.",
-            instance.pk,
-        )
-        return
-
-    Staff.objects.filter(pk=instance.pk).update(invite_link=invite_link)
+    if getattr(instance, '_previous_is_active', None) is True and instance.is_active is False:
+        if instance.bot_user_id:
+            try:
+                send_newsletter_api.delay(
+                    instance.bot_user.user_id,
+                    text="Ваш доступ деактивирован."
+                )
+                logger.info(
+                    "Sent deactivation newsletter for staff %s to bot user %s.",
+                    instance.pk,
+                    instance.bot_user.user_id,
+                )
+            except Exception as exc:
+                logger.exception(
+                    "Failed to send deactivation newsletter for staff %s: %s",
+                    instance.pk,
+                    exc,
+                )
+        else:
+            logger.warning(
+                "Staff %s deactivated but has no bot_user, skipping newsletter.",
+                instance.pk,
+            )
 
 
 @receiver(post_save, sender=Accommodation)

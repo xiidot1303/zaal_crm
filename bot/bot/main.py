@@ -13,7 +13,9 @@ async def start(update: Update, context: CustomContext):
     if await is_group(update):
         return
 
-    if await Staff.objects.filter(bot_user__user_id=update.effective_chat.id).aexists():
+    if await Staff.objects.filter(
+            bot_user__user_id=update.effective_chat.id, is_active=True
+        ).aexists():
         # main menu
         return await main_menu(update, context)
 

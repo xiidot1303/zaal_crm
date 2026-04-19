@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from bot.control.updater import application
-from telegram import Update, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import Update, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from bot import NewsletterUpdate
 
 
@@ -26,7 +26,7 @@ class NewsletterView(View):
         await application.update_queue.put(NewsletterUpdate(
                     user_id=int(user_id),
                     text=text,
-                    reply_markup=reply_markup,
+                    reply_markup=reply_markup or ReplyKeyboardRemove(),
                     location=location
                 ))
         

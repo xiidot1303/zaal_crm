@@ -11,6 +11,7 @@ class Staff(models.Model):
         on_delete=models.SET_NULL,
     )
     invite_link = models.CharField("Ссылка-приглашение", null=True, blank=True, max_length=255)
+    is_active = models.BooleanField("Активен?", default=True)
 
     def __str__(self):
         return self.name
