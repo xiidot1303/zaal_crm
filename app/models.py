@@ -26,6 +26,7 @@ class Account(models.Model):
     TYPE_CHOICES = [
         ('cash', 'Наличные'),
         ('bank', 'Банковский счёт'),
+        ('card', 'Пластиковая карта'),
         ('personal', 'Персональный счёт'),
         ('other', 'Другое'),
     ]
