@@ -31,6 +31,7 @@ class Account(models.Model):
         ('other', 'Другое'),
     ]
     type = models.CharField("Тип", max_length=50, choices=TYPE_CHOICES, default='other')
+    comission = models.DecimalField("Комиссия при переводе (%)", max_digits=5, decimal_places=0, default=0)
     balance = models.DecimalField("Баланс", max_digits=12, decimal_places=0, default=0)
 
     def __str__(self) -> str:

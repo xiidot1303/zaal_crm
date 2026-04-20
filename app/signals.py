@@ -197,22 +197,23 @@ def income_created(sender, instance, created, **kwargs):
         balance=F('balance') + instance.amount
     )
 
-    # If account is bank type, create an expense for 0.2% fee
+    # If account is bank type, create an expense for account comission fee
     account = Account.objects.get(pk=instance.account_id)
     if account.type == 'bank':
-        fee_amount = float(instance.amount) * 0.002  # 0.2%
-        expense = Expense.objects.create(
-            title=f"Комиссия банка за доход #{instance.pk}",
-            account=account,
-            amount=fee_amount,
-            description=f"Автоматическая комиссия банка (0.2%) за доход #{instance.pk}"
-        )
-        logger.info(
-            "Created bank fee expense %s for income %s with amount %s",
-            expense.pk,
-            instance.pk,
-            fee_amount,
-        )
+        fee_amount = float(instance.amount) * (account.comission / 100)
+        if fee_amount > 0:
+            expense = Expense.objects.create(
+                title=f"Комиссия банка за доход #{instance.pk}",
+                account=account,
+                amount=fee_amount,
+                description=f"Автоматическая комиссия банка ({account.comission}%) за доход #{instance.pk}"
+            )
+            logger.info(
+                "Created bank fee expense %s for income %s with amount %s",
+                expense.pk,
+                instance.pk,
+                fee_amount,
+            )
     
     # delete accommodation if income is of type accommodation
     if instance.type == 'accommodation' and instance.accommondation_id:
@@ -269,16 +270,12 @@ def income_deleted(sender, instance, **kwargs):
 
     account = Account.objects.get(pk=instance.account_id)
     if account.type == 'bank':
-        fee_amount = float(instance.amount) * 0.002  # 0.2%
         Expense.objects.filter(
-            title__icontains=f"#{instance.pk}",
-            account_id=instance.account_id,
-            amount=fee_amount
+            title__icontains=f"#{instance.pk}"
         ).delete()
         logger.info(
-            "Deleted bank fee expense for income %s with amount %s",
-            instance.pk,
-            fee_amount,
+            "Deleted bank fee expense for income %s",
+            instance.pk
         )
 
 
