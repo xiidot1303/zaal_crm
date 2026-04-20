@@ -34,7 +34,11 @@ class Account(models.Model):
     balance = models.DecimalField("Баланс", max_digits=12, decimal_places=0, default=0)
 
     def __str__(self) -> str:
-        return f"{self.title} ({self.get_type_display()}) - {self.balance} so'm."
+        if self.type != 'personal':
+            r = f"{self.title} ({self.get_type_display()}) - {self.balance} so'm."
+        else:
+            r = f"{self.title} ({self.get_type_display()})"
+        return self.title
 
     class Meta:
         verbose_name = "Счёт"
