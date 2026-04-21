@@ -16,12 +16,18 @@ logger = logging.getLogger(__name__)
 
 
 def build_staff_invite_link(token_length=6):
-    BOT_USERNAME = async_to_sync(get_bot_username)()
-    if not BOT_USERNAME:
+    try:
+        bot_username = async_to_sync(get_bot_username)()
+    except Exception as exc:
+        logger.exception("Failed to get bot username for invite link generation: %s", exc)
+        from config import BOT_USERNAME
+        bot_username = BOT_USERNAME
+         
+    if not bot_username:
         return None
 
     random_string = generate_random_string(token_length)
-    return f"https://t.me/{BOT_USERNAME}?start={random_string}"
+    return f"https://t.me/{bot_username}?start={random_string}"
 
 
 @receiver(pre_save, sender=Staff)
