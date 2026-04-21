@@ -35,13 +35,14 @@ CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold.contrib.import_export",
+    "unfold.contrib.filters",
     'app.apps.app',
     'bot.apps.bot',
+    'import_export',
     "unfold",
-    "unfold.contrib.filters",
     "unfold.contrib.forms", 
     "unfold.contrib.inlines",
-    "unfold.contrib.import_export",
     "unfold.contrib.simple_history",
     'django_apscheduler',
     'django.contrib.admin',
@@ -159,13 +160,42 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 LANGUAGES = (
     ("ru", _("Russian")),
     ("en", _("English")),
     ("uz", _("Uzbek")),
 )
+
+DATE_INPUT_FORMATS = [
+    "%d.%m.%Y",  # Custom input
+    "%Y-%m-%d",  # '2006-10-25'
+    "%m/%d/%Y",  # '10/25/2006'
+    "%m/%d/%y",  # '10/25/06'
+    "%b %d %Y",  # 'Oct 25 2006'
+    "%b %d, %Y",  # 'Oct 25, 2006'
+    "%d %b %Y",  # '25 Oct 2006'
+    "%d %b, %Y",  # '25 Oct, 2006'
+    "%B %d %Y",  # 'October 25 2006'
+    "%B %d, %Y",  # 'October 25, 2006'
+    "%d %B %Y",  # '25 October 2006'
+    "%d %B, %Y",  # '25 October, 2006'
+]
+
+# https://docs.djangoproject.com/en/5.1/ref/settings/#datetime-input-formats
+DATETIME_INPUT_FORMATS = [
+    "%d.%m.%Y %H:%M:%S",  # Custom input
+    "%Y-%m-%d %H:%M:%S",  # '2006-10-25 14:30:59'
+    "%Y-%m-%d %H:%M:%S.%f",  # '2006-10-25 14:30:59.000200'
+    "%Y-%m-%d %H:%M",  # '2006-10-25 14:30'
+    "%m/%d/%Y %H:%M:%S",  # '10/25/2006 14:30:59'
+    "%m/%d/%Y %H:%M:%S.%f",  # '10/25/2006 14:30:59.000200'
+    "%m/%d/%Y %H:%M",  # '10/25/2006 14:30'
+    "%m/%d/%y %H:%M:%S",  # '10/25/06 14:30:59'
+    "%m/%d/%y %H:%M:%S.%f",  # '10/25/06 14:30:59.000200'
+    "%m/%d/%y %H:%M",  # '10/25/06 14:30'
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -253,12 +283,12 @@ UNFOLD = {
         # Inherits from `unfold.forms.AuthenticationForm`
         # "form": "app.forms.CustomLoginForm",
     },
-    "STYLES": [
-        lambda request: static("css/style.css"),
-    ],
-    "SCRIPTS": [
-        lambda request: static("js/script.js"),
-    ],
+    # "STYLES": [
+    #     lambda request: static("css/style.css"),
+    # ],
+    # "SCRIPTS": [
+    #     lambda request: static("js/script.js"),
+    # ],
     "BORDER_RADIUS": "6px",
     "COLORS": {
         "base": {
@@ -347,6 +377,7 @@ UNFOLD = {
     #         ],
     #     },
     # ],
+    
 }
 
 
