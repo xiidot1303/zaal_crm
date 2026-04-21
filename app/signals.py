@@ -206,7 +206,7 @@ def income_created(sender, instance, created, **kwargs):
     # If account is bank type, create an expense for account comission fee
     account = Account.objects.get(pk=instance.account_id)
     if account.type == 'bank':
-        fee_amount = float(instance.amount) * (account.comission / 100)
+        fee_amount = float(instance.amount) * (float(account.comission) / 100)
         if fee_amount > 0:
             expense = Expense.objects.create(
                 title=f"Комиссия банка за доход #{instance.pk}",
