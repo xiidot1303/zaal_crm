@@ -52,7 +52,13 @@ class CustomContext(CallbackContext[ExtBot, dict, dict, dict]):
 class RedisPersistence(BasePersistence):
     def __init__(self, redis_url="redis://localhost:6379/12", prefix="ptb:", ttl=None):
         super().__init__()
-        self.redis = redis.from_url(redis_url, decode_responses=True)
+        self.redis = redis.from_url(
+            redis_url, 
+            decode_responses=True,
+            health_check_interval=30,
+            socket_keepalive=True,
+            retry_on_timeout=True,
+            )
         self.prefix = prefix
         self.ttl = ttl
 
