@@ -28,7 +28,7 @@ request = HTTPXRequest(
 persistence = RedisPersistence()
 context_types = ContextTypes(context=CustomContext)
 application = Application.builder().token(
-    BOT_API_TOKEN).persistence(persistence).context_types(context_types).request(request).build()
+    BOT_API_TOKEN).context_types(context_types).request(request).build()
 
 # add handlers
 for handler in handlers[::-1]:

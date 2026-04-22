@@ -32,7 +32,7 @@ login_handler = ConversationHandler(
         CommandHandler("start", login.start)
     ],
     name="login",
-    persistent=True
+    # persistent=True
 )
 
 
