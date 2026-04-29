@@ -162,6 +162,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+USE_THOUSAND_SEPARATOR = True
+
 LANGUAGES = (
     ("ru", _("Russian")),
     ("en", _("English")),
