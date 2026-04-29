@@ -95,9 +95,65 @@
             document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color || '#007bff');
         }
 
+        const amountInput = document.getElementById('id_amount');
+
+        function getDigits(value) {
+            return value.replace(/\D/g, '');
+        }
+
+        function formatAmount(value) {
+            const digits = getDigits(value);
+
+            if (!digits) {
+                return '';
+            }
+
+            return new Intl.NumberFormat('ru-RU').format(Number(digits));
+        }
+
+        function getCaretPositionFromDigitIndex(formattedValue, digitIndex) {
+            if (digitIndex <= 0) {
+                return 0;
+            }
+
+            let digitsSeen = 0;
+
+            for (let i = 0; i < formattedValue.length; i += 1) {
+                if (/\d/.test(formattedValue[i])) {
+                    digitsSeen += 1;
+                }
+
+                if (digitsSeen === digitIndex) {
+                    return i + 1;
+                }
+            }
+
+            return formattedValue.length;
+        }
+
+        function handleAmountInput(event) {
+            const digitsBeforeCaret = getDigits(
+                event.target.value.slice(0, event.target.selectionStart)
+            ).length;
+            const formattedValue = formatAmount(event.target.value);
+
+            event.target.value = formattedValue;
+
+            const newCaretPosition = getCaretPositionFromDigitIndex(
+                formattedValue,
+                digitsBeforeCaret
+            );
+            event.target.setSelectionRange(newCaretPosition, newCaretPosition);
+        }
+
+        amountInput.addEventListener('input', handleAmountInput);
+        amountInput.value = formatAmount(amountInput.value);
+
         document.getElementById('expenseForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            amountInput.value = getDigits(amountInput.value);
             const formData = new FormData(this);
+            amountInput.value = formatAmount(amountInput.value);
             formData.append('is_ajax', 'true');
             fetch(window.location.href, {
                 method: 'POST',

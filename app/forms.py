@@ -48,7 +48,12 @@ class IncomeForm(ModelForm):
         widgets = {
             'account': forms.Select(attrs={'class': 'form-select'}),
             'type': forms.Select(attrs={'class': 'form-select'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'amount': forms.TextInput(attrs={
+                'class': 'form-control',
+                'inputmode': 'numeric',
+                'autocomplete': 'off',
+                'placeholder': '1 000',
+            }),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
@@ -103,7 +108,12 @@ class ExpenseForm(ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'account': forms.Select(attrs={'class': 'form-select'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'amount': forms.TextInput(attrs={
+                'class': 'form-control',
+                'inputmode': 'numeric',
+                'autocomplete': 'off',
+                'placeholder': '1 000',
+            }),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
