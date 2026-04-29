@@ -39,6 +39,15 @@
         .accommodation-section.active {
             display: block;
         }
+        .accommodation-card + .accommodation-card {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--tg-theme-hint-color, #cccccc);
+        }
+        .add-accommodation-btn {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -87,63 +96,109 @@
                         {% endif %}
                     </div>
 
-                    <!-- Accommodation Section -->
+                    {{ accommodation_formset.management_form }}
+
                     <div class="accommodation-section" id="accommodationSection">
                         <h5>Проживание</h5>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.accommodation_room.id_for_label }}" class="form-label">Номер комнаты</label>
-                            {{ form.accommodation_room }}
-                            {% if form.accommodation_room.errors %}
-                                <div class="text-danger">{{ form.accommodation_room.errors }}</div>
-                            {% endif %}
+
+                        {% if accommodation_formset.non_form_errors %}
+                            <div class="alert alert-danger">
+                                {{ accommodation_formset.non_form_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div id="accommodationForms">
+                            {% for accommodation_form in accommodation_formset %}
+                                <div class="accommodation-card">
+                                    <h6 class="mb-3">Проживание {{ forloop.counter }}</h6>
+
+                                    <div class="mb-3">
+                                        <label for="{{ accommodation_form.room.id_for_label }}" class="form-label">Номер комнаты</label>
+                                        {{ accommodation_form.room }}
+                                        {% if accommodation_form.room.errors %}
+                                            <div class="text-danger">{{ accommodation_form.room.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ accommodation_form.days.id_for_label }}" class="form-label">Количество дней</label>
+                                        {{ accommodation_form.days }}
+                                        {% if accommodation_form.days.errors %}
+                                            <div class="text-danger">{{ accommodation_form.days.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ accommodation_form.check_in.id_for_label }}" class="form-label">Дата заезда</label>
+                                        {{ accommodation_form.check_in }}
+                                        {% if accommodation_form.check_in.errors %}
+                                            <div class="text-danger">{{ accommodation_form.check_in.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ accommodation_form.check_out.id_for_label }}" class="form-label">Дата выезда</label>
+                                        {{ accommodation_form.check_out }}
+                                        {% if accommodation_form.check_out.errors %}
+                                            <div class="text-danger">{{ accommodation_form.check_out.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ accommodation_form.price.id_for_label }}" class="form-label">Цена</label>
+                                        {{ accommodation_form.price }}
+                                        {% if accommodation_form.price.errors %}
+                                            <div class="text-danger">{{ accommodation_form.price.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.accommodation_days.id_for_label }}" class="form-label">Количество дней</label>
-                            {{ form.accommodation_days }}
-                            {% if form.accommodation_days.errors %}
-                                <div class="text-danger">{{ form.accommodation_days.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.accommodation_check_in.id_for_label }}" class="form-label">Дата заезда</label>
-                            {{ form.accommodation_check_in }}
-                            {% if form.accommodation_check_in.errors %}
-                                <div class="text-danger">{{ form.accommodation_check_in.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.accommodation_check_out.id_for_label }}" class="form-label">Дата выезда</label>
-                            {{ form.accommodation_check_out }}
-                            {% if form.accommodation_check_out.errors %}
-                                <div class="text-danger">{{ form.accommodation_check_out.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.accommodation_price.id_for_label }}" class="form-label">Цена</label>
-                            {{ form.accommodation_price }}
-                            {% if form.accommodation_price.errors %}
-                                <div class="text-danger">{{ form.accommodation_price.errors }}</div>
-                            {% endif %}
-                        </div>
+                        <button type="button" class="btn btn-outline-primary w-100 add-accommodation-btn" id="addAccommodationButton">+</button>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Создать Доход</button>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Создать Доход</button>
                 </form>
+
+                <template id="accommodationEmptyFormTemplate">
+                    <div class="accommodation-card">
+                        <h6 class="mb-3">Проживание __number__</h6>
+
+                        <div class="mb-3">
+                            <label for="{{ accommodation_formset.empty_form.room.id_for_label }}" class="form-label">Номер комнаты</label>
+                            {{ accommodation_formset.empty_form.room }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ accommodation_formset.empty_form.days.id_for_label }}" class="form-label">Количество дней</label>
+                            {{ accommodation_formset.empty_form.days }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ accommodation_formset.empty_form.check_in.id_for_label }}" class="form-label">Дата заезда</label>
+                            {{ accommodation_formset.empty_form.check_in }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ accommodation_formset.empty_form.check_out.id_for_label }}" class="form-label">Дата выезда</label>
+                            {{ accommodation_formset.empty_form.check_out }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ accommodation_formset.empty_form.price.id_for_label }}" class="form-label">Цена</label>
+                            {{ accommodation_formset.empty_form.price }}
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initialize Telegram Web App
         Telegram.WebApp.expand();
         Telegram.WebApp.setHeaderColor('bg_color');
 
-        // Apply Telegram theme
         const themeParams = Telegram.WebApp.themeParams;
         if (themeParams) {
             document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#ffffff');
@@ -154,44 +209,41 @@
             document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color || '#007bff');
         }
 
-        // Handle income type change to show/hide accommodation fields
         const typeSelect = document.getElementById('id_type');
         const accommodationSection = document.getElementById('accommodationSection');
-        const accommodationRoomSelect = document.getElementById('id_accommodation_room');
+        const accommodationForms = document.getElementById('accommodationForms');
+        const addAccommodationButton = document.getElementById('addAccommodationButton');
+        const totalFormsInput = document.getElementById('id_accommodations-TOTAL_FORMS');
+        const emptyFormTemplate = document.getElementById('accommodationEmptyFormTemplate');
 
-        // Load room options
-        function loadRoomOptions() {
-            fetch('/api/rooms/', {
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                accommodationRoomSelect.innerHTML = '<option value="">Выберите комнату</option>';
-                data.rooms.forEach(room => {
-                    const option = document.createElement('option');
-                    option.value = room.id;
-                    option.textContent = room.number + (room.is_free ? ' (Свободна)' : ' (Занята)');
-                    accommodationRoomSelect.appendChild(option);
-                });
-            })
-            .catch(error => console.error('Error loading rooms:', error));
-        }
-
-        typeSelect.addEventListener('change', function() {
-            if (this.value === 'accommodation') {
+        function toggleAccommodationSection() {
+            if (typeSelect.value === 'accommodation') {
                 accommodationSection.classList.add('active');
-                loadRoomOptions();
             } else {
                 accommodationSection.classList.remove('active');
             }
-        });
+        }
+
+        function addAccommodationForm() {
+            const formIndex = Number(totalFormsInput.value);
+            const formNumber = formIndex + 1;
+            const formHtml = emptyFormTemplate.innerHTML
+                .replace(/__prefix__/g, formIndex)
+                .replace(/__number__/g, formNumber);
+
+            accommodationForms.insertAdjacentHTML('beforeend', formHtml);
+            totalFormsInput.value = formIndex + 1;
+        }
+
+        typeSelect.addEventListener('change', toggleAccommodationSection);
+        addAccommodationButton.addEventListener('click', addAccommodationForm);
+        toggleAccommodationSection();
 
         document.getElementById('incomeForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             formData.append('is_ajax', 'true');
+
             fetch(window.location.href, {
                 method: 'POST',
                 body: formData,
@@ -202,17 +254,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Send data back to Telegram and close the mini app
                     Telegram.WebApp.sendData(JSON.stringify({
                         action: 'income_created',
                         income_id: data.income_id,
                         message: data.message
                     }));
                     Telegram.WebApp.close();
-                } else {
-                    // Handle errors
-                    alert('Error: ' + JSON.stringify(data.errors));
+                    return;
                 }
+
+                alert('Error: ' + JSON.stringify(data.errors));
             })
             .catch(error => {
                 console.error('Error:', error);

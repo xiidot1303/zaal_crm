@@ -5,7 +5,7 @@ from django.contrib.auth.models import User, Group
 
 from typing import cast
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
 
 from app.forms import TransferForm
 from app.models import *
@@ -59,22 +59,29 @@ class RoomAdmin(ModelAdmin):
 
 @admin.register(Accommodation)
 class AccommodationAdmin(ModelAdmin, ExportActionModelAdmin):
-    list_display = ("room", "days", "check_in", "check_out", "price")
-    search_fields = ("room__number",)
+    list_display = ("income", "room", "days", "check_in", "check_out", "price")
+    search_fields = ("room__number", "income__description")
     list_filter_submit = True
     list_filter = (("check_in", RangeDateFilter), ("check_out", RangeDateFilter))
+    list_select_related = ("income", "room")
     export_form_class = ExportForm
+
+
+class AccommodationTabular(TabularInline):
+    model = Accommodation
+    tab = True
 
 
 @admin.register(Income)
 class IncomeAdmin(ModelAdmin, ExportActionModelAdmin):
-    list_display = ("account", "staff", "type", "amount", "accommondation", "date")
+    list_display = ("account", "staff", "type", "amount", "date")
     list_filter_submit = True
     list_filter = ("type", ("date", RangeDateFilter))
-    search_fields = ("account__title", "description", "accommondation__room_number")
-    list_select_related = ("account", "accommondation")
+    search_fields = ("account__title", "description")
+    list_select_related = ("account",)
     readonly_fields = ("date",)
     export_form_class = ExportForm
+    inlines = [AccommodationTabular]
 
 
 @admin.register(Expense)

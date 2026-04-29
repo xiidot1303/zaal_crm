@@ -221,10 +221,6 @@ def income_created(sender, instance, created, **kwargs):
                 fee_amount,
             )
     
-    # delete accommodation if income is of type accommodation
-    if instance.type == 'accommodation' and instance.accommondation_id:
-        Accommodation.objects.filter(pk=instance.accommondation_id).delete()
-
 
 @receiver(pre_delete, sender=Income)
 def income_pre_delete(sender, instance, **kwargs):

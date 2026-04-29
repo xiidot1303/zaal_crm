@@ -1,11 +1,11 @@
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from asgiref.sync import sync_to_async
 from app.models import Income, Accommodation, Room, Staff
-from app.forms import IncomeForm
+from app.forms import AccommodationFormSet, IncomeForm
 
 
 def get_staff_from_request(request):
@@ -25,59 +25,79 @@ class IncomeCreateView(CreateView):
     template_name = 'app/income/income_form.html'
     success_url = reverse_lazy('admin:index')
 
-    def form_valid(self, form):
+    def get_accommodation_formset(self):
+        return AccommodationFormSet(
+            self.request.POST or None,
+            prefix='accommodations',
+            require_at_least_one=self.request.POST.get('type') == 'accommodation',
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault('accommodation_formset', self.get_accommodation_formset())
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        formset = self.get_accommodation_formset()
+
+        form_is_valid = form.is_valid()
+        formset_is_valid = True
+        if request.POST.get('type') == 'accommodation':
+            formset_is_valid = formset.is_valid()
+
+        if form_is_valid and formset_is_valid:
+            return self.forms_valid(form, formset)
+        return self.forms_invalid(form, formset)
+
+    def forms_valid(self, form, formset):
         staff = get_staff_from_request(self.request)
         if staff:
             form.instance.staff = staff
 
-        cleaned_data = form.cleaned_data
-        income_type = cleaned_data.get('type')
-        
-        # Handle accommodation creation if type is 'accommodation'
-        if income_type == 'accommodation':
-            try:
-                room_id = cleaned_data.get('accommodation_room')
-                days = cleaned_data.get('accommodation_days')
-                check_in = cleaned_data.get('accommodation_check_in')
-                check_out = cleaned_data.get('accommodation_check_out')
-                price = cleaned_data.get('accommodation_price')
-                
-                room = Room.objects.get(pk=room_id)
-                accommodation = Accommodation.objects.create(
-                    room=room,
-                    days=days,
-                    check_in=check_in,
-                    check_out=check_out,
-                    price=price
-                )
-                
-                # Attach accommodation to income
-                self.object = form.save()
-                self.object.accommondation = accommodation
-                self.object.save()
-            except Room.DoesNotExist:
-                return JsonResponse({
-                    'success': False,
-                    'errors': {'accommodation_room': 'Invalid room selected'}
-                }, status=400)
-        else:
+        with transaction.atomic():
             self.object = form.save()
-        
-        if self.request.headers.get('Content-Type') == 'application/json' or self.request.POST.get('is_ajax'):
+
+            if form.cleaned_data.get('type') == 'accommodation':
+                for accommodation_data in formset.cleaned_data:
+                    if not accommodation_data:
+                        continue
+
+                    Accommodation.objects.create(
+                        income=self.object,
+                        room=accommodation_data['room'],
+                        days=accommodation_data['days'],
+                        check_in=accommodation_data['check_in'],
+                        check_out=accommodation_data['check_out'],
+                        price=accommodation_data['price'],
+                    )
+
+        if self.is_ajax_request():
             return JsonResponse({
                 'success': True,
                 'income_id': self.object.id,
                 'message': 'Доход успешно создан'
             })
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url())
 
-    def form_invalid(self, form):
-        if self.request.headers.get('Content-Type') == 'application/json' or self.request.POST.get('is_ajax'):
+    def forms_invalid(self, form, formset):
+        if self.is_ajax_request():
             return JsonResponse({
                 'success': False,
-                'errors': form.errors
+                'errors': {
+                    'form': form.errors,
+                    'accommodations': formset.errors,
+                    'accommodations_non_form': formset.non_form_errors(),
+                }
             }, status=400)
-        return super().form_invalid(form)
+        return self.render_to_response(self.get_context_data(form=form, accommodation_formset=formset))
+
+    def is_ajax_request(self):
+        return (
+            self.request.headers.get('Content-Type') == 'application/json'
+            or self.request.POST.get('is_ajax')
+        )
 
 
 @csrf_exempt

@@ -142,7 +142,7 @@ async def web_app_data_handler(update: Update, context: CustomContext):
         income_id = payload.get('income_id')
         if income_id:
             try:
-                income = await Income.objects.select_related('account', 'accommondation').aget(pk=income_id)
+                income = await Income.objects.select_related('account').aget(pk=income_id)
                 type_display = dict(Income.TYPE_CHOICES).get(income.type, income.type)
                 text = (
                     f"{context.words.income_created_info}\n"

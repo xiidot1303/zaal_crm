@@ -60,6 +60,7 @@ class Room(models.Model):
 
 
 class Accommodation(models.Model):
+    income = models.ForeignKey("app.Income", null=True, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, null=True, verbose_name="Комната", on_delete=models.CASCADE)
     days = models.IntegerField("Количество дней")
     check_in = models.DateTimeField("Дата заезда")
@@ -81,13 +82,6 @@ class Income(models.Model):
         ('cleaning', 'Уборка'),
     ]
     type = models.CharField("Тип", max_length=50, choices=TYPE_CHOICES, default='other')
-    accommondation = models.ForeignKey(
-        Accommodation,
-        verbose_name="Проживание",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
 
     description = models.TextField("Описание", blank=True, null=True)
     date = models.DateTimeField("Дата", auto_now_add=True)

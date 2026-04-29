@@ -1,10 +1,9 @@
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, CharField, IntegerField, DecimalField, DateTimeField
+from django.forms import ModelForm, formset_factory
 from django import forms
 
 from app.models import *
 from app.services.transfer_service import validate_transfer_balance
-from django.utils import timezone
 
 
 class AccommodationForm(ModelForm):
@@ -19,15 +18,30 @@ class AccommodationForm(ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['room'].queryset = Room.objects.order_by('-is_free', 'number')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        days = cleaned_data.get('days')
+        check_in = cleaned_data.get('check_in')
+        check_out = cleaned_data.get('check_out')
+        price = cleaned_data.get('price')
+
+        if days is not None and days <= 0:
+            raise ValidationError({'days': "Количество дней должно быть больше нуля."})
+
+        if price is not None and price <= 0:
+            raise ValidationError({'price': "Цена должна быть больше нуля."})
+
+        if check_in and check_out and check_out <= check_in:
+            raise ValidationError({'check_out': "Дата выезда должна быть позже даты заезда."})
+
+        return cleaned_data
+
 
 class IncomeForm(ModelForm):
-    # Optional accommodation fields
-    accommodation_room = IntegerField(required=False, widget=forms.Select(attrs={'class': 'form-select'}))
-    accommodation_days = IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1}))
-    accommodation_check_in = DateTimeField(required=False, widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}))
-    accommodation_check_out = DateTimeField(required=False, widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}))
-    accommodation_price = DecimalField(required=False, widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}))
-
     class Meta:
         model = Income
         fields = ['account', 'type', 'amount', 'description']
@@ -53,27 +67,33 @@ class IncomeForm(ModelForm):
         if account.balance is None:
             raise ValidationError("У выбранного счёта не задан баланс.")
 
-        # If type is accommodation, we need accommodation fields
-        if income_type == 'accommodation':
-            room_id = cleaned_data.get('accommodation_room')
-            days = cleaned_data.get('accommodation_days')
-            check_in = cleaned_data.get('accommodation_check_in')
-            check_out = cleaned_data.get('accommodation_check_out')
-            price = cleaned_data.get('accommodation_price')
-
-            if not all([room_id, days, check_in, check_out, price]):
-                raise ValidationError("Все поля проживания обязательны для типа 'Проживание'.")
-
-            if days <= 0:
-                raise ValidationError({'accommodation_days': "Количество дней должно быть больше нуля."})
-
-            if price <= 0:
-                raise ValidationError({'accommodation_price': "Цена должна быть больше нуля."})
-
-            if check_out <= check_in:
-                raise ValidationError("Дата выезда должна быть позже даты заезда.")
-
         return cleaned_data
+
+
+class BaseAccommodationFormSet(forms.BaseFormSet):
+    def __init__(self, *args, require_at_least_one=False, **kwargs):
+        self.require_at_least_one = require_at_least_one
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        if any(self.errors) or not self.require_at_least_one:
+            return
+
+        has_accommodation = any(
+            form.cleaned_data and form.cleaned_data.get('room')
+            for form in self.forms
+        )
+        if not has_accommodation:
+            raise ValidationError("Добавьте хотя бы одно проживание.")
+
+
+AccommodationFormSet = formset_factory(
+    AccommodationForm,
+    formset=BaseAccommodationFormSet,
+    extra=1,
+)
 
 
 class ExpenseForm(ModelForm):
