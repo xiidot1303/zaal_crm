@@ -31,8 +31,8 @@ class Account(models.Model):
         ('other', 'Другое'),
     ]
     type = models.CharField("Тип", max_length=50, choices=TYPE_CHOICES, default='other')
-    comission = models.DecimalField("Комиссия при переводе (%)", max_digits=5, decimal_places=0, default=0)
-    balance = models.DecimalField("Баланс", max_digits=12, decimal_places=0, default=0)
+    comission = models.DecimalField("Комиссия при переводе (%)", max_digits=5, decimal_places=2, default=0)
+    balance = models.DecimalField("Баланс", max_digits=12, decimal_places=2, default=0)
 
     def __str__(self) -> str:
         if self.type != 'personal':
@@ -65,7 +65,7 @@ class Accommodation(models.Model):
     days = models.IntegerField("Количество дней")
     check_in = models.DateTimeField("Дата заезда")
     check_out = models.DateTimeField("Дата выезда")
-    price = models.DecimalField("Цена", max_digits=12, decimal_places=0)
+    price = models.DecimalField("Цена", max_digits=12, decimal_places=2)
 
     class Meta:
         verbose_name = "Проживание"
@@ -75,7 +75,7 @@ class Accommodation(models.Model):
 class Income(models.Model):
     account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
     staff = models.ForeignKey(Staff, verbose_name="Сотрудник", null=True, blank=True, on_delete=models.PROTECT)
-    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
+    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2)
     TYPE_CHOICES = [
         ('sale', 'Продажа'),
         ('accommodation', 'Проживание'),
@@ -95,7 +95,7 @@ class Expense(models.Model):
     title = models.CharField("Название", max_length=100)
     staff = models.ForeignKey(Staff, verbose_name="Сотрудник", null=True, blank=True, on_delete=models.PROTECT)
     account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
-    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
+    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2)
     description = models.TextField("Описание", blank=True, null=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
 
@@ -117,8 +117,8 @@ class Transfer(models.Model):
         related_name='transfers_in',
         on_delete=models.CASCADE
     )
-    fees = models.DecimalField("Комиссия", max_digits=12, decimal_places=0, default=0)
-    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
+    fees = models.DecimalField("Комиссия", max_digits=12, decimal_places=0, default=2)
+    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2)
     description = models.TextField("Описание", blank=True, null=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
 
@@ -140,7 +140,7 @@ class Transfer(models.Model):
 class Salary(models.Model):
     staff = models.ForeignKey(Staff, verbose_name="Сотрудник", on_delete=models.CASCADE)
     account = models.ForeignKey(Account, verbose_name="Счёт", on_delete=models.CASCADE)
-    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=0)
+    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2)
     description = models.TextField("Описание", blank=True, null=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
 
