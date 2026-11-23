@@ -86,6 +86,9 @@ class Income(models.Model):
     description = models.TextField("Описание", blank=True, null=True)
     date = models.DateTimeField("Дата", auto_now_add=True)
 
+    def __str__(self):
+        return f"Доход #{self.pk} ({self.get_type_display()})"
+
     class Meta:
         verbose_name = "Доход"
         verbose_name_plural = "Доходы"

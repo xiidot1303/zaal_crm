@@ -8,6 +8,7 @@ from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationFo
 from unfold.admin import ModelAdmin, TabularInline, StackedInline
 
 from app.forms import TransferForm
+from app.export_resources import readable_resource
 from app.models import *
 from app.services.transfer_service import (
     apply_transfer_balances,
@@ -65,6 +66,7 @@ class AccommodationAdmin(ModelAdmin, ExportActionModelAdmin):
     list_filter = (("check_in", RangeDateFilter), ("check_out", RangeDateFilter))
     list_select_related = ("income", "room")
     export_form_class = ExportForm
+    resource_classes = [readable_resource(Accommodation)]
 
 
 class AccommodationTabular(TabularInline):
@@ -81,6 +83,7 @@ class IncomeAdmin(ModelAdmin, ExportActionModelAdmin):
     list_select_related = ("account",)
     readonly_fields = ("date",)
     export_form_class = ExportForm
+    resource_classes = [readable_resource(Income)]
     inlines = [AccommodationTabular]
 
 
@@ -93,6 +96,7 @@ class ExpenseAdmin(ModelAdmin, ExportActionModelAdmin):
     list_select_related = ("account",)
     readonly_fields = ("date",)
     export_form_class = ExportForm
+    resource_classes = [readable_resource(Expense)]
 
 
 @admin.register(Transfer)
@@ -110,6 +114,7 @@ class TransferAdmin(ModelAdmin, ExportActionModelAdmin):
     list_select_related = ("from_account", "to_account")
     readonly_fields = ("date",)
     export_form_class = ExportForm
+    resource_classes = [readable_resource(Transfer)]
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -142,3 +147,4 @@ class SalaryAdmin(ModelAdmin, ExportActionModelAdmin):
     list_select_related = ("staff", "account")
     readonly_fields = ("date",)
     export_form_class = ExportForm
+    resource_classes = [readable_resource(Salary)]
