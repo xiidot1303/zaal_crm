@@ -45,3 +45,12 @@ async def get_start_msg(msg):
     else:
         r = None
     return r
+
+def format_amount(value) -> str:
+    """Format a money amount with space thousand separators: 6120000.00 -> '6 120 000'.
+    Keeps two decimals only when they are non-zero: 1500.5 -> '1 500.50'."""
+    from decimal import Decimal
+    value = Decimal(str(value))
+    if value == value.to_integral_value():
+        return f"{int(value):,}".replace(",", " ")
+    return f"{value:,.2f}".replace(",", " ")

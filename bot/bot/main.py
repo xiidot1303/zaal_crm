@@ -129,7 +129,7 @@ async def web_app_data_handler(update: Update, context: CustomContext):
                     f"{context.words.expense_created_info}\n"
                     f"{context.words.expense_title}: {expense.title}\n"
                     f"{context.words.expense_account}: {expense.account.title}\n"
-                    f"{context.words.expense_amount}: {expense.amount}\n"
+                    f"{context.words.expense_amount}: {format_amount(expense.amount)}\n"
                     f"{context.words.expense_description}: {expense.description or '-'}"
                 )
             except Expense.DoesNotExist:
@@ -148,7 +148,7 @@ async def web_app_data_handler(update: Update, context: CustomContext):
                     f"{context.words.income_created_info}\n"
                     f"{context.words.income_type}: {type_display}\n"
                     f"{context.words.income_account}: {income.account.title}\n"
-                    f"{context.words.income_amount}: {income.amount}\n"
+                    f"{context.words.income_amount}: {format_amount(income.amount)}\n"
                     f"{context.words.income_description}: {income.description or '-'}"
                 )
             except Income.DoesNotExist:
