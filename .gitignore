@@ -21,3 +21,4 @@ app/static/assets/*
 !core/__init__.py
 enter_server.sh
 .codex
+CLAUDE.md
