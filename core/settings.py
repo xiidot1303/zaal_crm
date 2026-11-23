@@ -418,3 +418,8 @@ def badge_callback(request):
 
 def permission_callback(request):
     return request.user.has_perm("app.change_model")
+
+
+# django-import-export: offer only XLSX when exporting (requires openpyxl)
+from import_export.formats.base_formats import XLSX
+EXPORT_FORMATS = [XLSX]
